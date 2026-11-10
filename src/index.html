@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gerador de QR Code</title>
+<script src="vendor/qrcode.js"></script>
+<script src="vendor/jspdf.js"></script>
+<link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<main>
+  <header>
+    <h1>Gerador de QR Code</h1>
+    <p>Escolha link, texto, Wi-Fi, WhatsApp ou Pix, ajuste a aparência e baixe a imagem em PNG, JPEG ou PDF.</p>
+  </header>
+
+  <section class="panel" aria-label="Configurações">
+<div class="field"><label for="qr-type">Tipo de QR Code</label>
+      <select id="qr-type"><option value="text">Link ou texto</option><option value="wifi">Wi-Fi</option><option value="whatsapp">WhatsApp</option><option value="pix">Pix</option></select></div>
+    <div id="wifi-fields" hidden>
+      <div class="field"><label for="ssid">Nome da rede (SSID)</label><input id="ssid" type="text" autocomplete="off"></div>
+      <div class="field"><label for="security">Segurança</label><select id="security"><option value="WPA">WPA / WPA2 pessoal</option><option value="WEP">WEP</option><option value="nopass">Sem senha</option></select></div>
+      <div class="field" id="password-field"><label for="password">Senha da rede</label><input type="password" id="password" autocomplete="off"></div>
+    </div>
+    <div id="whatsapp-fields" hidden>
+      <div class="field"><label for="phone">Número com código do país e DDD</label><input id="phone" type="text" inputmode="tel" placeholder="+55 11 99999-9999"></div>
+      <div class="field"><label for="message">Mensagem (opcional)</label><textarea id="message" placeholder="Olá! Gostaria de mais informações."></textarea></div>
+      <p class="hint">O QR abre uma conversa no WhatsApp com a mensagem preenchida.</p>
+      <a id="whatsapp-link" hidden target="_blank" rel="noopener noreferrer">Abrir link do WhatsApp</a>
+    </div>
+    <div id="pix-fields" hidden>
+      <div class="field"><label for="key">Chave Pix</label><input id="key" type="text" autocomplete="off" placeholder="CPF, CNPJ, e-mail, telefone ou chave aleatória"></div>
+      <div class="field"><label for="amount">Valor em R$ (opcional)</label><input id="amount" type="text" inputmode="decimal" placeholder="10,00"></div>
+      <div class="field"><label for="description">Descrição (opcional)</label><input id="description" type="text" maxlength="72"></div>
+      <div class="field"><label for="name">Nome do recebedor</label><input id="name" type="text" maxlength="25" autocomplete="off"></div>
+      <div class="field"><label for="city">Cidade do recebedor</label><input id="city" type="text" maxlength="15" autocomplete="off"></div>
+      <p class="hint">Pix estático. Confira os dados do recebedor no aplicativo do banco antes de pagar. A chave deve estar cadastrada.</p>
+    </div>
+    <p class="hint">Os dados são processados neste navegador, sem envio a servidores. Quem lê o QR de Wi-Fi pode obter a senha.</p>
+    <div class="field" id="text-fields">
+      <label for="content">Conteúdo</label>
+      <textarea id="content" placeholder="https://www.exemplo.com.br">https://instagram.com</textarea>
+      <div class="hint">Links, textos, telefones ou qualquer outro conteúdo.</div>
+    </div>
+
+    <div class="field">
+      <label for="caption">Legenda (opcional)</label>
+      <input type="text" id="caption" maxlength="60" placeholder="Ex.: Aponte a câmera para acessar">
+      <div class="hint">Aparece abaixo do código em todos os formatos.</div>
+    </div>
+
+    <div class="field">
+      <span class="label" id="ecl-label">Correção de erros</span>
+      <div class="seg" role="group" aria-labelledby="ecl-label" id="ecl">
+        <button type="button" data-v="L" aria-pressed="false">Baixa</button>
+        <button type="button" data-v="M" aria-pressed="true">Média</button>
+        <button type="button" data-v="Q" aria-pressed="false">Alta</button>
+        <button type="button" data-v="H" aria-pressed="false">Máxima</button>
+      </div>
+      <div class="hint">Quanto maior, mais resistente a sujeira ou impressão ruim, e mais denso o código.</div>
+    </div>
+
+    <div class="field">
+      <div class="range-head"><label for="size">Tamanho da imagem</label><output id="size-out">1024 px</output></div>
+      <input type="range" id="size" min="256" max="2048" step="64" value="1024">
+    </div>
+
+    <div class="field">
+      <div class="range-head"><label for="margin">Margem</label><output id="margin-out">4 módulos</output></div>
+      <input type="range" id="margin" min="0" max="10" step="1" value="4">
+    </div>
+
+    <div class="field row">
+      <div>
+        <label for="fg">Cor do código</label>
+        <div class="color"><input type="color" id="fg" value="#000000"><span id="fg-hex">#000000</span></div>
+      </div>
+      <div>
+        <label for="bg">Cor de fundo</label>
+        <div class="color"><input type="color" id="bg" value="#ffffff"><span id="bg-hex">#FFFFFF</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="panel preview" aria-label="Pré-visualização">
+    <div class="stage" id="stage">
+      <canvas id="canvas" width="1024" height="1024" aria-label="QR Code gerado"></canvas>
+      <p class="empty" id="empty" hidden>Digite algo no campo Conteúdo para gerar o QR Code.</p>
+    </div>
+    <div class="meta" id="meta" aria-live="polite"></div>
+    <div class="downloads">
+      <button type="button" class="primary" data-fmt="png">Baixar PNG</button>
+      <button type="button" data-fmt="jpeg">Baixar JPEG</button>
+      <button type="button" data-fmt="pdf">Baixar PDF</button>
+    </div>
+    <div class="status" id="status" aria-live="polite"></div>
+    <div class="manual" id="manual" hidden>
+      <p id="manual-text"></p>
+      <img id="manual-img" alt="Arquivo gerado, pronto para salvar">
+      <button type="button" id="manual-close">Fechar</button>
+    </div>
+  </section>
+</main>
+
+<script src="js/payloads.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

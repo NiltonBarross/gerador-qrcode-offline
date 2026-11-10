@@ -1,0 +1,11 @@
+{
+  "name": "gerador-qrcode-offline",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gerador local de QR Code para texto, Wi-Fi, WhatsApp e Pix",
+  "scripts": {
+    "build": "node scripts/build.cjs",
+    "test": "node --test --test-isolation=none tests/*.test.cjs"
+  },
+  "engines": { "node": ">=24" }
+}

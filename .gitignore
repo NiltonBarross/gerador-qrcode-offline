@@ -1,0 +1,5 @@
+.uv-cache/
+node_modules/
+.env
+*.log
+artifacts/
